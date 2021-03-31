@@ -6,16 +6,22 @@ $( document ).ready(function() {
     switch(page) {
         case 'init':
             $("#content").load("init.html");
-          break;
-          case 'calendar':
+            break;
+        case 'calendar':
             $("#content").load("calendar.html");
-          break;
-          case 'standings':
+            break;
+        case 'standings':
             $("#content").load("standings.html");
-          break;
-          case 'signup':
+            break;
+        case 'signup':
             $("#content").load("signup.html");
-          break;
+            break;
+        case 'live':
+            $("#content").load("live.html");
+            break;
+        case 'rules':
+            $("#content").load("rules.html");
+            break;
         default:
             $("#content").load("init.html");
       }
