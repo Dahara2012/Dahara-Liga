@@ -1,0 +1,20 @@
+body{
+    background-color: rgb(17, 17, 17);
+}
+
+#banner{
+    height: 6cm;
+    background-image: url("../img/banner.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+#content {
+    background-color:   whitesmoke;
+    padding-top:        .5cm;
+    padding-bottom:     .5cm;
+}
+
+.calendar {
+    margin-bottom: .5cm;
+}
