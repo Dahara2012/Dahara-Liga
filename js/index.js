@@ -2,7 +2,7 @@ $( document ).ready(function() {
     //console.log("ready event");
     let params = new URLSearchParams(document.location.search.substring(1));
     let page = params.get("page");
-    console.log(page)
+    console.log('load' +page);
     switch(page) {
         case 'init':
             $("#content").load("init.html");
