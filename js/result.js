@@ -14,7 +14,6 @@ function getResult(id) {
                 objekt: "result",
                 id: id
             }, function (data) {
-                console.log(data);
                 resolve(data);
             });
         } catch (error) {
@@ -31,11 +30,11 @@ async function generateResult(id) {
         template = template.replace("ajaxDriver", resultEntries[i].username);
         template = template.replace("ajaxTeam", resultEntries[i].teamname);
         template = template.replace("ajaxCar", resultEntries[i].car);
-        template = template.replace("ajaxGap", resultEntries[i].gap);
-        template = template.replace("ajaxQual", resultEntries[i].qualipos);
-        template = template.replace("ajaxAvg", resultEntries[i].average);
-        template = template.replace("ajaxFast", resultEntries[i].fastest);
-        template = template.replace("ajaxInc", resultEntries[i].incidents);
+        template = template.replace("ajaxGap", '+ '+formatLaptimes(resultEntries[i].gap));
+        template = template.replace("ajaxQual", resultEntries[i].qualipos+' - '+formatLaptimes(resultEntries[i].quali));
+        template = template.replace("ajaxAvg", formatLaptimes(resultEntries[i].average));
+        template = template.replace("ajaxFast", formatLaptimes(resultEntries[i].fastest));
+        template = template.replace("ajaxPoints", resultEntries[i].points);
         $('#resultTable').append(template);
     }
 }

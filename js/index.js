@@ -41,3 +41,18 @@ function getTemplate(file) {
         }
     });
 }
+
+function pad(n, width, z) {
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
+
+function formatLaptimes(miliseconds){
+    let min = Math.floor(miliseconds/60000);
+    let sec = Math.floor(miliseconds%60000/1000);
+    let ms = Math.floor(miliseconds%1000);
+    //let ms  = 
+    return min+':'+pad(sec,2)+':'+pad(ms,3);
+}

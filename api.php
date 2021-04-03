@@ -84,7 +84,7 @@ function getResult($objektid){
     if ($objektid == 'list'){
         $statement = $connection->query("SELECT * FROM result");
     }else{
-        $statement = $connection->prepare('SELECT result.id as resultId, race, position, car, qualipos, gap, average, fastest, incidents, link, user.name as username, team.name as teamname FROM `result` left join user on `user` = `user`.`id` left join team on user.team = team.id WHERE race = ? ORDER BY position DESC');
+        $statement = $connection->prepare('SELECT result.id as resultId, race, position, points, car, qualipos, gap, quali, average, fastest, link, user.name as username, team.name as teamname FROM `result` left join user on `user` = `user`.`id` left join team on user.team = team.id WHERE race = ? ORDER BY position ASC');
         $statement->execute([$objektid]);
     }
     $rows = array();
