@@ -12,13 +12,13 @@ include "./config/db.php";
 if (isset($_GET['objekt'])){
     $objekt = $_GET['objekt'];
 }else {
-    die("<b>objekt Paramter muss vorhanden sein</b> </br>".$error_explain);
+    die("<b>objekt Paramter muss vorhanden sein</b> </br>");
 }
 //Objekt-ID-Paramter muss vorhanden und numerisch sein
 if (isset($_GET['id'])){
     $objektid   = $_GET['id'];
     if (!is_numeric($objektid)){
-        die("<b>id Paramter muss numerisch sein</b> </br>".$error_explain);
+        die("<b>id Paramter muss numerisch sein</b> </br>");
     }
 }else{
     $objektid = 'list';
