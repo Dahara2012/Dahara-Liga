@@ -13,14 +13,8 @@ $( document ).ready(function() {
         case 'standings':
             $("#content").load("standings.html");
             break;
-        case 'signup':
-            $("#content").load("signup.html");
-            break;
         case 'live':
             $("#content").load("live.html");
-            break;
-        case 'rules':
-            $("#content").load("rules.html");
             break;
         case 'result':
             $("#content").load("result.html");
