@@ -43,6 +43,9 @@ switch ($objekt) {
     case 'user':
         getUser($objektid);
         break;
+    case 'participants':
+        getParticipants($objektid);
+        break;
 }
 
 function getPenalty($objektid){
@@ -136,6 +139,23 @@ function getUser($objektid){
         $statement = $connection->query("SELECT * FROM user");
     }else{
         $statement = $connection->prepare('SELECT * FROM user WHERE ID = ?');
+        $statement->execute([$objektid]);
+    }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getParticipants($objektid){
+    $connection = init_connection();
+    if ($objektid == 'list'){
+        $statement = $connection->query("SELECT `user`.`name` as 'driver', `iracingid`, `team`.`name` as 'team' FROM `user` left join `team` on `team` = `team`.`id`");
+    }else{
+        $statement = $connection->prepare('SELECT * FROM `user` left join team on `team` = `team`.id WHERE `user`.id = ?');
         $statement->execute([$objektid]);
     }
     $rows = array();

@@ -19,6 +19,9 @@ $( document ).ready(function() {
         case 'result':
             $("#content").load("result.html");
             break;
+        case 'participants':
+            $("#content").load("participants.html");
+            break;
         default:
             $("#content").load("init.html");
     }
