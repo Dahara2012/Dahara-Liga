@@ -5,6 +5,7 @@ const configServer = require('./config/server.json');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 var mysql = require('mysql');
+var cooldown = new Date();
 
 //Main
 client.login(configToken.value);
@@ -52,10 +53,60 @@ function connectDatabase() {
   });
 }
 
-async function dbSavePresence(oldPresence, newPresence) {
+function selectLastChecked(connection) {
+  return new Promise((resolve, reject) => {
+    connection.query({
+      sql: 'SELECT CAST(`discordid` AS CHAR) `discordid` FROM `discord` ORDER BY `discord`.`lastUpdate` ASC LIMIT 1'
+    }, function (error, results, fields) {
+      if (error != null) {
+        reject(error);
+      } else {
+        resolve(results[0].discordid);
+      }
+    });
+  });
+}
+
+function deleteLastChecked(connection, lastChecked) {
+  return new Promise((resolve, reject) => {
+    connection.query({
+      sql: 'DELETE FROM `discord` WHERE `discordid` = ?',
+      values: [lastChecked]
+    }, function (error, results, fields) {
+      if (error != null) {
+        reject(error);
+      } else {
+        console.log(time + " Deleted from Discord " + lastChecked);
+        resolve();
+      }
+    });
+  });
+}
+
+async function pruneKickedUsers() {
   try {
     var connection = await connectDatabase();
-    let doSQL = await querySavePresence(connection, oldPresence, newPresence);
+    let lastChecked = await selectLastChecked(connection);
+    let guild = client.guilds.resolve(configServer.guild);
+    let findUser = await guild.members.cache.get(lastChecked);
+    if (typeof findUser === 'undefined') {
+      let deleteKickedUser = await deleteLastChecked(connection, lastChecked);
+    }else{
+      let updateUser = await querySavePresence(connection, lastChecked);
+    }
+    connection.end();
+  } catch (error) {
+    console.log(error);
+    if (typeof connection !== 'undefined') {
+      connection.end();
+    }
+  }
+}
+
+async function dbSavePresence(discordid) {
+  try {
+    var connection = await connectDatabase();
+    let doSQL = await querySavePresence(connection, discordid);
     connection.end();
   } catch (error) {
     if (typeof connection !== 'undefined') {
@@ -66,30 +117,31 @@ async function dbSavePresence(oldPresence, newPresence) {
   }
 }
 
-function querySavePresence(connection, oldPresence, newPresence) {
+function querySavePresence(connection, discordid) {
   //Aktualisiert oder legt UserData eines Nutzers in der DB neu an
   return new Promise((resolve, reject) => {
-    let avatar = newPresence.member.user.avatarURL({ format: "png", dynamic: true, size: 4096 });
+    let avatar = client.guilds.resolve(configServer.guild).members.cache.get(discordid).user.avatarURL({ format: "png", dynamic: true, size: 4096 });
     if (avatar == null) {
       avatar = 'https://liga.dahara.de/img/platzhalter.jpg';
     }
-    let userid = newPresence.userID;
+    let userid = discordid;
     let time = getTime();
     let nickname = 'Name';
-    if (newPresence.user.username != null) {
-      nickname = newPresence.user.username;
+    if (client.guilds.resolve(configServer.guild).members.cache.get(discordid).user.username != null) {
+      nickname = client.guilds.resolve(configServer.guild).members.cache.get(discordid).user.username;
     }
-    if (newPresence.member.nickname != null) {
-      nickname = newPresence.member.nickname;
+    if (client.guilds.resolve(configServer.guild).members.cache.get(discordid).nickname != null) {
+      nickname = client.guilds.resolve(configServer.guild).members.cache.get(discordid).nickname;
     }
     connection.query({
-      sql: 'INSERT INTO `discord`(`discordid`, `avatarurl`, `nickname`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `avatarurl`=?, `nickname`=?',
+      sql: 'INSERT INTO `discord`(`discordid`, `avatarurl`, `nickname`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `avatarurl`=?, `nickname`=?, `LastUpdate`= CURRENT_TIMESTAMP',
       values: [userid, avatar, nickname, avatar, nickname]
     }, function (error, results, fields) {
       if (error != null) {
         reject(error);
       }
-      resolve(time + " UserData updated for " + nickname);
+      console.log(time + " Discord data updated for " + nickname);
+      resolve();
     });
   });
 }
@@ -100,15 +152,13 @@ client.on('ready', () => {
 });
 
 client.on('presenceUpdate', (oldPresence, newPresence) => {
-  let time = getTime();
-  let nickname = 'Name';
-  if (newPresence.user.username != null) {
-    nickname = newPresence.user.username;
-  }
-  if (newPresence.member.nickname != null) {
-    nickname = newPresence.member.nickname;
-  }
-  console.log(time + " Event: Presence-Update " + nickname)
+  let jetzt = new Date();
+  if ((jetzt - cooldown) < 60000){
+    dbSavePresence(newPresence.userID)
+    console.log("wait for cooldown");
+  }else{
+    cooldown = jetzt;
 
-  let log = dbSavePresence(oldPresence, newPresence);
+    pruneKickedUsers();
+  }
 });

@@ -43,6 +43,9 @@ switch ($objekt) {
     case 'user':
         getUser($objektid);
         break;
+    case 'discordonly':
+        getDiscordOnlyAccounts($objektid);
+        break;
     case 'participants':
         getParticipants($objektid);
         break;
@@ -156,6 +159,23 @@ function getParticipants($objektid){
         $statement = $connection->query("SELECT `user`.`name` as 'driver', `iracingid`, `team`.`name` as 'team' FROM `user` left join `team` on `team` = `team`.`id`");
     }else{
         $statement = $connection->prepare('SELECT * FROM `user` left join team on `team` = `team`.id WHERE `user`.id = ?');
+        $statement->execute([$objektid]);
+    }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getDiscordOnlyAccounts($objektid){
+    $connection = init_connection();
+    if ($objektid == 'list'){
+        $statement = $connection->query("SELECT * FROM `discord` left join `user` on `discordid` = `discord` WHERE `user`.`id` is NULL");
+    }else{
+        $statement = $connection->prepare('SELECT * FROM `discord` left join `user` on `discordid` = `discord` WHERE `user`.`id` is NULL WHERE `discordid` = ?');
         $statement->execute([$objektid]);
     }
     $rows = array();
