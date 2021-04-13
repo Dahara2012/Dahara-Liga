@@ -22,6 +22,9 @@ $( document ).ready(function() {
         case 'participants':
             $("#content").load("participants.html");
             break;
+        case 'profile':
+            $("#content").load("profile.html");
+            break;
         default:
             $("#content").load("init.html");
     }
@@ -52,4 +55,8 @@ function formatLaptimes(miliseconds){
     let ms = Math.floor(miliseconds%1000);
     //let ms  = 
     return min+':'+pad(sec,2)+':'+pad(ms,3);
+}
+
+function htmlEntities(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

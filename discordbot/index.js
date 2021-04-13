@@ -69,6 +69,7 @@ function selectLastChecked(connection) {
 
 function deleteLastChecked(connection, lastChecked) {
   return new Promise((resolve, reject) => {
+    let time = getTime();
     connection.query({
       sql: 'DELETE FROM `discord` WHERE `discordid` = ?',
       values: [lastChecked]
@@ -122,7 +123,7 @@ function querySavePresence(connection, discordid) {
   return new Promise((resolve, reject) => {
     let avatar = client.guilds.resolve(configServer.guild).members.cache.get(discordid).user.avatarURL({ format: "png", dynamic: true, size: 4096 });
     if (avatar == null) {
-      avatar = 'https://liga.dahara.de/img/platzhalter.jpg';
+      avatar = 'https://liga.dahara.de/img/platzhalter.png';
     }
     let userid = discordid;
     let time = getTime();

@@ -58,10 +58,6 @@ async function generateParticipants() {
     }
 }
 
-function htmlEntities(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
 async function generateDiscordOnly() {
     let discordOnlyEntries = await getOnlyDiscord();
     for (let i = 0; i < discordOnlyEntries.length; i++) {
