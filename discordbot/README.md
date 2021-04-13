@@ -1,2 +1,2 @@
 # DiscordBot
- Coratex Discord Bot
+ Liga Discord Bot

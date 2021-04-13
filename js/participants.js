@@ -17,6 +17,20 @@ function getParticipants() {
     });
 }
 
+function getOnlyDiscord() {
+    return new Promise((resolve, reject) => {
+        try {
+            $.getJSON('./api.php', {
+                objekt: "onlyDiscord"
+            }, function (data) {
+                resolve(data);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
 async function generateParticipants() {
     let participantsEntries = await getParticipants();
     for (let i = 0; i < participantsEntries.length; i++) {
