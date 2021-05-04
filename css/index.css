@@ -1,5 +1,10 @@
+iframe{
+    overflow:hidden;
+}
+
 body{
     background-color: rgb(17, 17, 17);
+    font-family: 'Noto Sans', sans-serif;
 }
 
 #banner{

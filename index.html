@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- CSS -->
+      <!-- GoogleFont -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+      <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <link href="css/index.css" rel="stylesheet">
     
@@ -28,12 +32,24 @@
           <div class="navbar-nav">
             <a class="nav-link" href="index.html?page=init">Start</a>
             <a class="nav-link" href="index.html?page=calendar">Rennen</a>
-            <a class="nav-link disabled" href="index.html?page=standings">Klassement</a>
+            <a class="nav-link" href="index.html?page=standings">Klassement</a>
             <a class="nav-link" target="_blank" href="Regelwerk.pdf">Regelwerk</a>
-            <a class="nav-link disabled" href="index.html?page=live">Übertragung</a>
+            <a class="nav-link" href="index.html?page=live">Übertragung</a>
             <a class="nav-link" target="_blank" href="https://forms.gle/ncWbs3eBAZTifTsV9">Anmeldung</a>
           </div>
         </div>
+        <!-- Test-Dropdown ...-->
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Test
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a class="dropdown-item" href="index.html?page=participants">Participants</a>
+            <a class="dropdown-item" href="index.html?page=profile&id=1">Profile</a>
+            <a class="dropdown-item" href="index.html?page=team&id=1">Team</a>
+          </div>
+        </div>
+        <!-- ...Test-Dropdown -->
       </div>
     </nav>
     <!-- Banner -->
@@ -53,9 +69,12 @@
     <!-- JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+    <script src="https://embed.twitch.tv/embed/v1.js"></script>
     <script src="js/index.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/result.js"></script>
     <script src="js/participants.js"></script>
+    <script src="js/standings.js"></script>
+    <script src="js/team.js"></script>
   </body>
 </html>

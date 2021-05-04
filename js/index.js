@@ -1,9 +1,11 @@
-$( document ).ready(function() {
-    //console.log("ready event");
+var headers = new Headers(); // Currently empty
+headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+
+$(document).ready(function () {
     let params = new URLSearchParams(document.location.search.substring(1));
     let page = params.get("page");
-    console.log('load ' +page);
-    switch(page) {
+    console.log('load ' + page);
+    switch (page) {
         case 'init':
             $("#content").load("init.html");
             break;
@@ -25,6 +27,9 @@ $( document ).ready(function() {
         case 'profile':
             $("#content").load("profile.html");
             break;
+        case 'team':
+            $("#content").load("team.html");
+            break;
         default:
             $("#content").load("init.html");
     }
@@ -33,7 +38,7 @@ $( document ).ready(function() {
 function getTemplate(file) {
     return new Promise((resolve, reject) => {
         try {
-            $.get('./template/'+file, function(data) {
+            $.get('./template/' + file, function (data) {
                 resolve(data);
             });
         } catch (error) {
@@ -49,12 +54,12 @@ function pad(n, width, z) {
 }
 
 
-function formatLaptimes(miliseconds){
-    let min = Math.floor(miliseconds/60000);
-    let sec = Math.floor(miliseconds%60000/1000);
-    let ms = Math.floor(miliseconds%1000);
+function formatLaptimes(miliseconds) {
+    let min = Math.floor(miliseconds / 60000);
+    let sec = Math.floor(miliseconds % 60000 / 1000);
+    let ms = Math.floor(miliseconds % 1000);
     //let ms  = 
-    return min+':'+pad(sec,2)+':'+pad(ms,3);
+    return min + ':' + pad(sec, 2) + ':' + pad(ms, 3);
 }
 
 function htmlEntities(str) {

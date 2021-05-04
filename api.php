@@ -46,9 +46,34 @@ switch ($objekt) {
     case 'discordonly':
         getDiscordOnlyAccounts($objektid);
         break;
+    case 'soloStandings':
+        getSoloStandings();
+        break;
+    case 'driverPenalties':
+        getDriverPenalties($objektid);
+        break;
+    case 'kader':
+        getKader($objektid);
+        break;
     case 'participants':
         getParticipants($objektid);
         break;
+}
+function getKader($objektid){
+    $connection = init_connection();
+    if ($objektid == 'list'){
+        $statement = $connection->query("SELECT * FROM `user` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid`");
+    }else{
+        $statement = $connection->prepare('SELECT * FROM `user` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid` WHERE `team` = ?');
+        $statement->execute([$objektid]);
+    }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
 }
 
 function getPenalty($objektid){
@@ -73,9 +98,34 @@ function getRace($objektid){
     if ($objektid == 'list'){
         $statement = $connection->query("SELECT * FROM race");
     }else{
-        $statement = $connection->prepare('SELECT * FROM race WHERE ID = ?');
+        $statement = $connection->prepare("SELECT * FROM race WHERE ID = ?");
         $statement->execute([$objektid]);
     }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getDriverPenalties($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare("SELECT (SELECT SUM(`pp`) as 'gesamtstrafpunkte' FROM `penalty` WHERE `user` = ?) - (SELECT COUNT(DISTINCT `race`) as 'countRennen' FROM `result`) AS 'strafpunkte'");
+    $statement->execute([$objektid]);
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getSoloStandings(){
+    $connection = init_connection();
+    $statement = $connection->query("SELECT `user`.`name` as 'username', `user`.`id` as 'userid', `team`.`name` as 'teamname', `avatarurl`, `user`, SUM(`points`) as 'gesamtpunkte' FROM `result` LEFT JOIN `user` on `user` = `user`.`id` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid` LEFT JOIN `team` on `user`.`team` = `team`.`id`GROUP BY `user` ORDER BY `gesamtpunkte` DESC");
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -90,7 +140,7 @@ function getResult($objektid){
     if ($objektid == 'list'){
         $statement = $connection->query("SELECT * FROM result");
     }else{
-        $statement = $connection->prepare('SELECT result.id as resultId, race, position, points, car, qualipos, gap, quali, average, fastest, link, user.name as username, team.name as teamname FROM `result` left join user on `user` = `user`.`id` left join team on user.team = team.id WHERE race = ? ORDER BY position ASC');
+        $statement = $connection->prepare('SELECT result.id as resultId, race, position, points, car, qualipos, gap, quali, average, fastest, user.name as username, team.name as teamname FROM `result` left join user on `user` = `user`.`id` left join team on user.team = team.id WHERE race = ? ORDER BY position ASC');
         $statement->execute([$objektid]);
     }
     $rows = array();
