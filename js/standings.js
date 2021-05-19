@@ -1,6 +1,7 @@
 //jQuery ready-Event
 $(document).ready(function() {
     generateSoloStandings();
+    generateTeamStandings();
 })
 
 function getSoloStandings() {
@@ -8,6 +9,20 @@ function getSoloStandings() {
         try {
             $.getJSON('./api.php', {
                 objekt: "soloStandings"
+            }, function (data) {
+                resolve(data);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+function getTeamStandings() {
+    return new Promise((resolve, reject) => {
+        try {
+            $.getJSON('./api.php', {
+                objekt: "teamStandings"
             }, function (data) {
                 resolve(data);
             });
@@ -53,5 +68,25 @@ async function generateSoloStandings() {
         template = template.replace("ajaxPunkte", soloStandingsEntries[i].gesamtpunkte);
         template = template.replace("ajaxPP", pp);
         $('#soloStandings').append(template);
+    }
+}
+
+async function generateTeamStandings() {
+    let teamStandingsEntries = await getTeamStandings();
+    for (let i = 0; i < teamStandingsEntries.length; i++) {
+        let pp = '';
+        if (parseInt(teamStandingsEntries[i].strafpunkte) >= 10){
+            pp = "<span class='badge bg-danger'>"+teamStandingsEntries[i].strafpunkte+"</span>";
+        }else if(parseInt(teamStandingsEntries[i].strafpunkte) < 4){
+            pp = "<span class='badge bg-success'>"+teamStandingsEntries[i].strafpunkte+"</span>";
+        }else if(parseInt(teamStandingsEntries[i].strafpunkte) >= 4){
+            pp = "<span class='badge bg-warning text-dark'>"+teamStandingsEntries[i].strafpunkte+"</span>";
+        }
+        template = await getTemplate('standings_team.html');
+        template = template.replace("ajaxPos", i+1);
+        template = template.replace("ajaxTeam", teamStandingsEntries[i].teamname);
+        template = template.replace("ajaxPunkte", teamStandingsEntries[i].gesamtpunkte);
+        template = template.replace("ajaxPP", pp);
+        $('#teamStandings').append(template);
     }
 }

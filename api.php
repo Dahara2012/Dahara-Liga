@@ -49,6 +49,9 @@ switch ($objekt) {
     case 'soloStandings':
         getSoloStandings();
         break;
+    case 'teamStandings':
+        getTeamStandings();
+        break;
     case 'driverPenalties':
         getDriverPenalties($objektid);
         break;
@@ -126,6 +129,18 @@ function getDriverPenalties($objektid){
 function getSoloStandings(){
     $connection = init_connection();
     $statement = $connection->query("SELECT `user`.`name` as 'username', `user`.`id` as 'userid', `team`.`name` as 'teamname', `avatarurl`, `user`, SUM(`points`) as 'gesamtpunkte' FROM `result` LEFT JOIN `user` on `user` = `user`.`id` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid` LEFT JOIN `team` on `user`.`team` = `team`.`id`GROUP BY `user` ORDER BY `gesamtpunkte` DESC");
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getTeamStandings(){
+    $connection = init_connection();
+    $statement = $connection->query("SELECT team.name AS 'teamname', SUM(`points`) as 'gesamtpunkte', team.strafpunkte FROM `result` join `user` on result.`user` = `user`.`id` join team on `user`.team = team.`id` group by team.id ORDER BY `gesamtpunkte` DESC");
     $rows = array();
     while ($row = $statement->fetch())
     {
