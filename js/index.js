@@ -30,6 +30,9 @@ $(document).ready(function () {
         case 'team':
             $("#content").load("team.html");
             break;
+        case 'incidents':
+            $("#content").load("incidents.html");
+            break;
         default:
             $("#content").load("init.html");
     }

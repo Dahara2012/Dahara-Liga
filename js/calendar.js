@@ -27,6 +27,7 @@ async function generateCalendar(){
         template = template.replace("ajaxLayout", calendarEntries[i].layout);
         template = template.replace("ajaxStart", calendarEntries[i].start);
         template = template.replace("ajaxResult", '<a href=index.html?page=result&id='+calendarEntries[i].id+'>Link</a>');
+        template = template.replace("ajaxIncidents", '<a href=index.html?page=incidents&id='+calendarEntries[i].id+'>Link</a>');
         $('#calendarDiv').append(template);
     }
 }
