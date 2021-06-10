@@ -22,9 +22,24 @@ function getIncidents(id) {
     });
 }
 
+function getTeamIncidents(id) {
+    return new Promise((resolve, reject) => {
+        try {
+            $.getJSON('./api.php', {
+                objekt: "teamincidents",
+                id: id
+            }, function (data) {
+                resolve(data);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
 async function generateIncidents(id) {
     penaltyEntries = await getIncidents(id);
-    console.log(penaltyEntries)
+    penaltyTeamEntries = await getTeamIncidents(id);
     for (let i = 0; i < penaltyEntries.length; i++) {
         template = await getTemplate('incidents.html');
         template = template.replace("ajaxFahrer", penaltyEntries[i].fahrername);
@@ -32,6 +47,15 @@ async function generateIncidents(id) {
         template = template.replace("ajaxBeschreibung", penaltyEntries[i].description);
         template = template.replace("ajaxWo", penaltyEntries[i].wo);
         template = template.replace("ajaxStrafpunkte", penaltyEntries[i].strafe);
+        $('#incidentTable').append(template);
+    }
+    for (let i = 0; i < penaltyTeamEntries.length; i++) {
+        template = await getTemplate('incidents.html');
+        template = template.replace("ajaxFahrer", '-');
+        template = template.replace("ajaxTeam", penaltyTeamEntries[i].teamname);
+        template = template.replace("ajaxBeschreibung", penaltyTeamEntries[i].description);
+        template = template.replace("ajaxWo", penaltyTeamEntries[i].wo);
+        template = template.replace("ajaxStrafpunkte", penaltyTeamEntries[i].strafe);
         $('#incidentTable').append(template);
     }
 }

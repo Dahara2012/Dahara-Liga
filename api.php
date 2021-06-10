@@ -37,6 +37,9 @@ switch ($objekt) {
     case 'incidents':
         getIncidents($objektid);
          break;
+    case 'teamincidents':
+        getTeamIncidents($objektid);
+        break;
     case 'season':
         getSeason($objektid);
         break;
@@ -60,6 +63,9 @@ switch ($objekt) {
         break;
     case 'kader':
         getKader($objektid);
+        break;
+    case 'teamresults':
+        getTeamResults($objektid);
         break;
     case 'participants':
         getParticipants($objektid);
@@ -170,6 +176,23 @@ function getIncidents($objektid){
     print json_encode($rows, JSON_PRETTY_PRINT);
 }
 
+function getTeamIncidents($objektid){
+    $connection = init_connection();
+    if ($objektid == 'list'){
+        $statement = $connection->query("SELECT * FROM teampenalty");
+    }else{
+        $statement = $connection->prepare("SELECT name AS 'teamname', pp as 'strafe', wo, description FROM `teampenalty` join `team` on `teampenalty`.`team` = `team`.`id` WHERE `race` = ?");
+        $statement->execute([$objektid]);
+    }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
 function getResult($objektid){
     $connection = init_connection();
     if ($objektid == 'list'){
@@ -178,6 +201,19 @@ function getResult($objektid){
         $statement = $connection->prepare('SELECT result.id as resultId, race, position, points, car, qualipos, gap, quali, fastest, user.name as username, team.name as teamname FROM `result` left join user on `user` = `user`.`id` left join team on user.team = team.id WHERE race = ? ORDER BY position ASC');
         $statement->execute([$objektid]);
     }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getTeamResults($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare('SELECT * FROM `result` join user on `result`.`user` = `user`.`id` WHERE team = ?');
+    $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
     {
