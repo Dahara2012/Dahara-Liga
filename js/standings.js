@@ -73,6 +73,7 @@ async function generateSoloStandings() {
 
 async function generateTeamStandings() {
     let teamStandingsEntries = await getTeamStandings();
+    console.log(teamStandingsEntries);
     for (let i = 0; i < teamStandingsEntries.length; i++) {
         let pp = '';
         if (parseInt(teamStandingsEntries[i].strafpunkte) >= 10){
@@ -84,7 +85,7 @@ async function generateTeamStandings() {
         }
         template = await getTemplate('standings_team.html');
         template = template.replace("ajaxPos", i+1);
-        template = template.replace("ajaxTeam", teamStandingsEntries[i].teamname);
+        template = template.replace("ajaxTeam", "<a href='index.html?page=team&id="+teamStandingsEntries[i].teamid+"' target='_self'>"+teamStandingsEntries[i].teamname+"</a>");
         template = template.replace("ajaxPunkte", teamStandingsEntries[i].gesamtpunkte);
         template = template.replace("ajaxPP", pp);
         $('#teamStandings').append(template);

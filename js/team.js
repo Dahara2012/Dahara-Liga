@@ -6,6 +6,7 @@ $(document).ready(function () {
         generateBasicTeamInfo(id);
         generateKader(id);
         generateTeamResults(id);
+        generateTeamStrafpunkte(id);
     }
 })
 
@@ -54,6 +55,36 @@ function getTeamResults(id) {
     });
 }
 
+function getDriverPenalties(id) {
+    return new Promise((resolve, reject) => {
+        try {
+            $.getJSON('./api.php', {
+                objekt: "driverPenalties",
+                id: id
+            }, function (data) {
+                resolve(data);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+function getTeamIncidents(id) {
+    return new Promise((resolve, reject) => {
+        try {
+            $.getJSON('./api.php', {
+                objekt: "teamincidentsteampage",
+                id: id
+            }, function (data) {
+                resolve(data);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
 async function generateBasicTeamInfo(id) {
     let teamEntries = await getTeam(id);
     $('#team-name').text(teamEntries[0].name);
@@ -64,6 +95,7 @@ async function generateBasicTeamInfo(id) {
 async function generateKader(id) {
     let kaderEntries = await getKader(id);
     for (let i = 0; i < kaderEntries.length; i++) {
+        generateFahrerStrafpunkte(kaderEntries[i].name, kaderEntries[i].id);
         template = await getTemplate('team_kader.html');
         template = template.replace("ajaxName", kaderEntries[i].name);
         template = template.replace("ajaxAvatar", "<img src='"+kaderEntries[i].avatarurl+"' class='img-fluid' style='max-height: 1cm;'>");
@@ -80,5 +112,26 @@ async function generateTeamResults(id) {
         template = template.replace("ajaxName", TeamResultsEntries[i].name+"</br>");
         template = template.replace("ajaxPoints", TeamResultsEntries[i].points+" Punkte in Rennen "+TeamResultsEntries[i].race);
         $('#team-results').append(template);
+    }
+}
+
+async function generateFahrerStrafpunkte(name, id) {
+    let ppEntry = await getDriverPenalties(id);
+    let pp = ppEntry[0].strafpunkte;
+    if (pp == null || parseInt(pp) < 0){pp = 0;}
+    template = await getTemplate('team_penalties.html');
+    template = template.replace("ajaxFahrer", name);
+    template = template.replace("ajaxStrafpunkte", pp+" Strafpunkte");
+    $('#team-penalties').append(template);
+}
+
+async function generateTeamStrafpunkte(id) {
+    let penaltyEntries = await getTeamIncidents(id);
+    console.log(penaltyEntries)
+    for (let i = 0; i < penaltyEntries.length; i++) {
+        template = await getTemplate('team_penalties.html');
+        template = template.replace("ajaxFahrer", penaltyEntries[i].teamname);
+        template = template.replace("ajaxStrafpunkte", penaltyEntries[i].strafe+" Strafpunkte "+penaltyEntries[i].description);
+        $('#team-penalties').append(template);
     }
 }

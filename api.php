@@ -40,6 +40,9 @@ switch ($objekt) {
     case 'teamincidents':
         getTeamIncidents($objektid);
         break;
+    case 'teamincidentsteampage':
+        getTeamIncidentsTeampage($objektid);
+        break;
     case 'season':
         getSeason($objektid);
         break;
@@ -149,7 +152,7 @@ function getSoloStandings(){
 
 function getTeamStandings(){
     $connection = init_connection();
-    $statement = $connection->query("SELECT team.name AS 'teamname', SUM(`points`) as 'gesamtpunkte', team.strafpunkte FROM `result` join `user` on result.`user` = `user`.`id` join team on `user`.team = team.`id` group by team.id ORDER BY `gesamtpunkte` DESC");
+    $statement = $connection->query("SELECT team.name AS 'teamname', SUM(`points`) as 'gesamtpunkte', team.strafpunkte, team.id as 'teamid' FROM `result` join `user` on result.`user` = `user`.`id` join team on `user`.team = team.`id` group by team.id ORDER BY `gesamtpunkte` DESC");
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -182,6 +185,23 @@ function getTeamIncidents($objektid){
         $statement = $connection->query("SELECT * FROM teampenalty");
     }else{
         $statement = $connection->prepare("SELECT name AS 'teamname', pp as 'strafe', wo, description FROM `teampenalty` join `team` on `teampenalty`.`team` = `team`.`id` WHERE `race` = ?");
+        $statement->execute([$objektid]);
+    }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getTeamIncidentsTeampage($objektid){
+    $connection = init_connection();
+    if ($objektid == 'list'){
+        $statement = $connection->query("SELECT * FROM teampenalty");
+    }else{
+        $statement = $connection->prepare("SELECT name AS 'teamname', pp as 'strafe', wo, description FROM `teampenalty` LEFT join `team` on `teampenalty`.`team` = `team`.`id` WHERE `team`.`id` = ?");
         $statement->execute([$objektid]);
     }
     $rows = array();
