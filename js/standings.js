@@ -52,7 +52,7 @@ async function generateSoloStandings() {
     for (let i = 0; i < soloStandingsEntries.length; i++) {
         let ppEntry = await getDriverPenalties(soloStandingsEntries[i].userid);
         let pp = ppEntry[0].strafpunkte;
-        if (pp == null){pp = 0;}
+        if (pp == null || parseInt(pp) < 0){pp = 0;}
         if (parseInt(pp) >= 10){
             pp = "<span class='badge bg-danger'>"+pp+"</span>";
         }else if(parseInt(pp) < 4){
