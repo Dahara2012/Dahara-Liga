@@ -2,6 +2,7 @@ var headers = new Headers(); // Currently empty
 headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
 
 $(document).ready(function () {
+    randomBanner();
     let params = new URLSearchParams(document.location.search.substring(1));
     let page = params.get("page");
     console.log('load ' + page);
@@ -67,4 +68,9 @@ function formatLaptimes(miliseconds) {
 
 function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function randomBanner (){
+    let picture = Math.floor(Math.random() * 10) + 1;
+    document.getElementById('banner').style.backgroundImage = "url('../img/banner/"+picture+".jpg')";
 }

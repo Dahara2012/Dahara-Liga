@@ -9,15 +9,21 @@ body{
 
 #banner{
     height: 8cm;
-    background-image: url("../img/banner.png");
+    background-image: url("../img/banner/1.jpg");
+    /* opacity: .4; */
     background-size: cover;
     background-position: center;
+    background-color: black;
 }
 
 #content {
     background-color:   rgb(255, 255, 255);
     padding-top:        .5cm;
     padding-bottom:     .5cm;
+}
+
+.brands {
+    width: 24%;
 }
 
 .calendar {
