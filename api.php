@@ -61,9 +61,6 @@ switch ($objekt) {
     case 'teamStandings':
         getTeamStandings();
         break;
-    case 'driverPenalties':
-        getDriverPenalties($objektid);
-        break;
     case 'kader':
         getKader($objektid);
         break;
@@ -125,22 +122,14 @@ function getRace($objektid){
     print json_encode($rows, JSON_PRETTY_PRINT);
 }
 
-function getDriverPenalties($objektid){
-    $connection = init_connection();
-    $statement = $connection->prepare("SELECT (SELECT SUM(`pp`) as 'gesamtstrafpunkte' FROM `penalty` WHERE `user` = ?) - (SELECT COUNT(DISTINCT `race`) as 'countRennen' FROM `result`) AS 'strafpunkte'");
-    $statement->execute([$objektid]);
-    $rows = array();
-    while ($row = $statement->fetch())
-    {
-        $rows[] = $row;
-    }
-    header('Content-Type: application/json');
-    print json_encode($rows, JSON_PRETTY_PRINT);
-}
-
 function getSoloStandings(){
     $connection = init_connection();
-    $statement = $connection->query("SELECT `user`.`name` as 'username', `user`.`id` as 'userid', `team`.`name` as 'teamname', `avatarurl`, `user`, SUM(`points`) as 'gesamtpunkte' FROM `result` LEFT JOIN points on result.position = points.position LEFT JOIN `user` on `user` = `user`.`id` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid` LEFT JOIN `team` on `user`.`team` = `team`.`id`GROUP BY `user` ORDER BY `gesamtpunkte` DESC");
+    $statement = $connection->query("SELECT * FROM
+    (SELECT `user`.`name` as 'username', `user`.`id` as 'userid', `team`.`name` as 'teamname', `avatarurl`, `user`, SUM(`points`) as 'gesamtpunkte' FROM `result` LEFT JOIN points on result.position = points.position LEFT JOIN `user` on `user` = `user`.`id` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid` LEFT JOIN `team` on `user`.`team` = `team`.`id`GROUP BY `user`) a
+    LEFT JOIN
+    (SELECT penalty.user, SUM(`pp`) - (SELECT COUNT(DISTINCT `race`) FROM `result`) as pp FROM `penalty` GROUP BY penalty.user) b
+     ON a.user = b.user  
+    ORDER BY `a`.`gesamtpunkte`  DESC");
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -152,7 +141,7 @@ function getSoloStandings(){
 
 function getTeamStandings(){
     $connection = init_connection();
-    $statement = $connection->query("SELECT team.name AS 'teamname', SUM(`points`) as 'gesamtpunkte', team.strafpunkte, team.id as 'teamid' FROM `result` LEFT JOIN points on result.position = points.position join `user` on result.`user` = `user`.`id` join team on `user`.team = team.`id` group by team.id ORDER BY `gesamtpunkte` DESC");
+    $statement = $connection->query("SELECT * FROM (SELECT team.id, team.name, sum(points) as punkte FROM `result` join `user` on result.user = user.id join `team` on user.team = team.id join points on result.position = points.position group by team) a LEFT JOIN (SELECT sum(pp) as pp, teampenalty.team from teampenalty GROUP BY teampenalty.team) b ON a.id = b.team ORDER BY `punkte` DESC");
     $rows = array();
     while ($row = $statement->fetch())
     {
