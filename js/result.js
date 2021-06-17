@@ -29,7 +29,7 @@ async function generateResult(id) {
         template = template.replace("ajaxPos", resultEntries[i].position);
         template = template.replace("ajaxDriver", resultEntries[i].username);
         template = template.replace("ajaxTeam", resultEntries[i].teamname);
-        template = template.replace("ajaxCar", resultEntries[i].car);
+        template = template.replace("ajaxCar", '<img src="img/brands/'+resultEntries[i].car+'.png" class="img-fluid" style="max-height: .75cm;"></img>');
         template = template.replace("ajaxGap", '+ '+formatLaptimes(resultEntries[i].gap));
         template = template.replace("ajaxQual", resultEntries[i].qualipos+' - '+formatLaptimes(resultEntries[i].quali));
         template = template.replace("ajaxFast", formatLaptimes(resultEntries[i].fastest));

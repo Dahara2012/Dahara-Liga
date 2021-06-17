@@ -140,7 +140,7 @@ function getDriverPenalties($objektid){
 
 function getSoloStandings(){
     $connection = init_connection();
-    $statement = $connection->query("SELECT `user`.`name` as 'username', `user`.`id` as 'userid', `team`.`name` as 'teamname', `avatarurl`, `user`, SUM(`points`) as 'gesamtpunkte' FROM `result` LEFT JOIN `user` on `user` = `user`.`id` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid` LEFT JOIN `team` on `user`.`team` = `team`.`id`GROUP BY `user` ORDER BY `gesamtpunkte` DESC");
+    $statement = $connection->query("SELECT `user`.`name` as 'username', `user`.`id` as 'userid', `team`.`name` as 'teamname', `avatarurl`, `user`, SUM(`points`) as 'gesamtpunkte' FROM `result` LEFT JOIN points on result.position = points.position LEFT JOIN `user` on `user` = `user`.`id` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid` LEFT JOIN `team` on `user`.`team` = `team`.`id`GROUP BY `user` ORDER BY `gesamtpunkte` DESC");
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -152,7 +152,7 @@ function getSoloStandings(){
 
 function getTeamStandings(){
     $connection = init_connection();
-    $statement = $connection->query("SELECT team.name AS 'teamname', SUM(`points`) as 'gesamtpunkte', team.strafpunkte, team.id as 'teamid' FROM `result` join `user` on result.`user` = `user`.`id` join team on `user`.team = team.`id` group by team.id ORDER BY `gesamtpunkte` DESC");
+    $statement = $connection->query("SELECT team.name AS 'teamname', SUM(`points`) as 'gesamtpunkte', team.strafpunkte, team.id as 'teamid' FROM `result` LEFT JOIN points on result.position = points.position join `user` on result.`user` = `user`.`id` join team on `user`.team = team.`id` group by team.id ORDER BY `gesamtpunkte` DESC");
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -218,7 +218,7 @@ function getResult($objektid){
     if ($objektid == 'list'){
         $statement = $connection->query("SELECT * FROM result");
     }else{
-        $statement = $connection->prepare('SELECT result.id as resultId, race, position, points, car, qualipos, gap, quali, fastest, user.name as username, team.name as teamname FROM `result` left join user on `user` = `user`.`id` left join team on user.team = team.id WHERE race = ? ORDER BY position ASC');
+        $statement = $connection->prepare('SELECT result.id as resultId, race, result.position, points, cars.car, qualipos, gap, quali, fastest, user.name as username, team.name as teamname FROM `result` left join user on `user` = `user`.`id` left join team on user.team = team.id left join points on result.position = points.position join cars on result.car = cars.id WHERE race = ? ORDER BY position ASC');
         $statement->execute([$objektid]);
     }
     $rows = array();
@@ -232,7 +232,7 @@ function getResult($objektid){
 
 function getTeamResults($objektid){
     $connection = init_connection();
-    $statement = $connection->prepare('SELECT * FROM `result` join user on `result`.`user` = `user`.`id` WHERE team = ?');
+    $statement = $connection->prepare('SELECT race, user, position, qualipos, quali, gap, fastest, cars.car, name, discord, iracingid, team FROM `result` left join cars on result.car = cars.id join user on `result`.`user` = `user`.`id` WHERE team = ?');
     $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
