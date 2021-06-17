@@ -232,7 +232,7 @@ function getResult($objektid){
 
 function getTeamResults($objektid){
     $connection = init_connection();
-    $statement = $connection->prepare('SELECT race, user, position, qualipos, quali, gap, fastest, cars.car, name, discord, iracingid, team FROM `result` left join cars on result.car = cars.id join user on `result`.`user` = `user`.`id` WHERE team = ?');
+    $statement = $connection->prepare('SELECT race, user, result.position, qualipos, quali, gap, fastest, cars.car, name, discord, iracingid, team, points FROM `result` left join cars on result.car = cars.id join user on `result`.`user` = `user`.`id` LEFT JOIN points on result.position = points.position WHERE team = ?');
     $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
