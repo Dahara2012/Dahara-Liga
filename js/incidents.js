@@ -5,7 +5,7 @@ $(document).ready(function () {
     if (!isNaN(id)) {
         generateIncidents(id);
     }
-})
+});
 
 function getIncidents(id) {
     return new Promise((resolve, reject) => {

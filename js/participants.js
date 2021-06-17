@@ -2,7 +2,7 @@
 $(document).ready(function() {
     generateParticipants();
     generateDiscordOnly();
-})
+});
 
 function getParticipants() {
     return new Promise((resolve, reject) => {
