@@ -51,7 +51,7 @@ async function generateSoloStandings() {
     let soloStandingsEntries = await getSoloStandings();
     for (let i = 0; i < soloStandingsEntries.length; i++) {
         //PP Farbe
-        let pp = soloStandingsEntries.pp;
+        let pp = soloStandingsEntries[i].pp;
         if (pp == null || parseInt(pp) < 0){pp = 0;}
         if (parseInt(pp) >= 10){
             pp = "<span class='badge bg-danger'>"+pp+"</span>";

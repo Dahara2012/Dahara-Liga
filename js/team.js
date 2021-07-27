@@ -127,7 +127,6 @@ async function generateFahrerStrafpunkte(name, id) {
 
 async function generateTeamStrafpunkte(id) {
     let penaltyEntries = await getTeamIncidents(id);
-    console.log(penaltyEntries)
     for (let i = 0; i < penaltyEntries.length; i++) {
         template = await getTemplate('team_penalties.html');
         template = template.replace("ajaxFahrer", penaltyEntries[i].teamname);

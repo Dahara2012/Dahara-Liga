@@ -64,6 +64,9 @@ switch ($objekt) {
     case 'kader':
         getKader($objektid);
         break;
+    case 'driverPenalties':
+        getDriverPenalties($objektid);
+        break;
     case 'teamresults':
         getTeamResults($objektid);
         break;
@@ -96,6 +99,19 @@ function getPenalty($objektid){
         $statement = $connection->prepare('SELECT * FROM penalty WHERE ID = ?');
         $statement->execute([$objektid]);
     }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getDriverPenalties($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare("SELECT (SELECT SUM(`pp`) as 'gesamtstrafpunkte' FROM `penalty` WHERE `user` = ?) - (SELECT COUNT(DISTINCT `race`) as 'countRennen' FROM `result`) AS 'strafpunkte'");
+    $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
     {
