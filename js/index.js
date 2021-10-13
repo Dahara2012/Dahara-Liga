@@ -34,6 +34,9 @@ $(document).ready(function () {
         case 'incidents':
             $("#content").load("incidents.html");
             break;
+        case 'signup':
+            $("#content").load("signup.html");
+            break;
         default:
             $("#content").load("init.html");
     }
