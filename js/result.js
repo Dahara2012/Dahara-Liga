@@ -5,7 +5,7 @@ $(document).ready(function () {
     if (!isNaN(id)) {
         generateResult(id);
     }
-})
+});
 
 function getResult(id) {
     return new Promise((resolve, reject) => {

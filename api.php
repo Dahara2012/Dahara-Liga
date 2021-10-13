@@ -59,7 +59,7 @@ switch ($objekt) {
         getSoloStandings();
         break;
     case 'teamStandings':
-        getTeamStandings();
+        getTeamStandings($objektid);
         break;
     case 'kader':
         getKader($objektid);
@@ -73,6 +73,9 @@ switch ($objekt) {
     case 'participants':
         getParticipants($objektid);
         break;
+    case 'settings':
+        getSettings();
+        break;  
 }
 function getKader($objektid){
     $connection = init_connection();
@@ -123,12 +126,8 @@ function getDriverPenalties($objektid){
 
 function getRace($objektid){
     $connection = init_connection();
-    if ($objektid == 'list'){
-        $statement = $connection->query("SELECT * FROM race");
-    }else{
-        $statement = $connection->prepare("SELECT * FROM race WHERE ID = ?");
-        $statement->execute([$objektid]);
-    }
+    $statement = $connection->prepare("SELECT * FROM `race` WHERE `season` = ?");
+    $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -155,9 +154,10 @@ function getSoloStandings(){
     print json_encode($rows, JSON_PRETTY_PRINT);
 }
 
-function getTeamStandings(){
+function getTeamStandings($objektid){
     $connection = init_connection();
-    $statement = $connection->query("SELECT * FROM (SELECT team.id, team.name, sum(points) as punkte FROM `result` join `user` on result.user = user.id join `team` on user.team = team.id join points on result.position = points.position group by team) a LEFT JOIN (SELECT sum(pp) as pp, teampenalty.team from teampenalty GROUP BY teampenalty.team) b ON a.id = b.team ORDER BY `punkte` DESC");
+    $statement = $connection->prepare("SELECT * FROM (SELECT team.id, team.name, sum(points) as punkte FROM `result` join `user` on result.user = user.id join `team` on user.team = team.id join points on result.position = points.position JOIN race ON result.race = race.id WHERE season = ? GROUP BY team) a LEFT JOIN (SELECT sum(pp) as pp, teampenalty.team from teampenalty GROUP BY teampenalty.team) b ON a.id = b.team ORDER BY `punkte` DESC");
+    $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -307,6 +307,19 @@ function getParticipants($objektid){
         $statement = $connection->prepare('SELECT * FROM `user` left join team on `team` = `team`.id WHERE `user`.id = ?');
         $statement->execute([$objektid]);
     }
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getSettings(){
+    $connection = init_connection();
+    $statement = $connection->prepare('SELECT * FROM `settings`');
+    $statement->execute();
     $rows = array();
     while ($row = $statement->fetch())
     {

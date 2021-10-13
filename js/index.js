@@ -34,9 +34,6 @@ $(document).ready(function () {
         case 'incidents':
             $("#content").load("incidents.html");
             break;
-        case 'signup':
-            $("#content").load("signup.html");
-            break;
         default:
             $("#content").load("init.html");
     }
@@ -76,4 +73,30 @@ function htmlEntities(str) {
 function randomBanner (){
     let picture = Math.floor(Math.random() * 10) + 1;
     document.getElementById('banner').style.backgroundImage = "url('../img/banner/"+picture+".jpg')";
+}
+
+function getCurrentSeason() {
+    return new Promise((resolve, reject) => {
+        try {
+            $.getJSON('./api.php', {
+                objekt: "settings"
+            }, function (data) {
+                resolve(data[0]);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+async function determineSeason() {
+    let params = new URLSearchParams(document.location.search.substring(1));
+    const season = params.get("season");
+    if (!isNaN(season) && season != null) {
+        return season;
+    }else{
+        const settings = await getCurrentSeason();
+        return settings.current_season;
+    }
+    
 }
