@@ -73,10 +73,108 @@ switch ($objekt) {
     case 'participants':
         getParticipants($objektid);
         break;
+    case 'userTeam':
+        getUserteam($objektid);
+        break;
+    case 'podiums':
+        getPodiums($objektid);
+        break;
+    case 'fahrerGesamtPunkte':
+        getFahrerGesamtPunkte($objektid);
+        break;
+    case 'currentGesamtStrafpunkte':
+        getCurrentGesamtStrafpunkte($objektid);
+        break;
+    case 'currentStrafpunkteListe':
+        getCurrentStrafpunkteListe($objektid);
+        break;
+    case 'lastRacesListe':
+        getlastRacesListe($objektid);
+        break;
     case 'settings':
         getSettings();
         break;  
 }
+
+
+function getlastRacesListe($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare('SELECT * FROM `result` join race on result.`race` = race.id where user = ? order by start DESC limit 5');
+    $statement->execute([$objektid]);
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getCurrentStrafpunkteListe($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare('SELECT * FROM `penalty` where user = ? and verfall > CURRENT_DATE');
+    $statement->execute([$objektid]);
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getCurrentGesamtStrafpunkte($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare('SELECT sum(pp) as aktuelleStrafpunkte FROM `penalty` where user = ? and verfall > CURRENT_DATE');
+    $statement->execute([$objektid]);
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getFahrerGesamtPunkte($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare('SELECT sum(points) as punkte FROM `result` join points on result.position = points.position WHERE user = ?');
+    $statement->execute([$objektid]);
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getPodiums($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare('SELECT count(race) as podiums FROM `result` WHERE user = ? and position < 4');
+    $statement->execute([$objektid]);
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
+function getUserteam($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare('SELECT user.name as username, team.name as teamname, logo FROM `user` join team on user.team = team.id WHERE user.id = ?');
+    $statement->execute([$objektid]);
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
+
 function getKader($objektid){
     $connection = init_connection();
     if ($objektid == 'list'){
