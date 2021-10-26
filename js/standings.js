@@ -70,7 +70,7 @@ async function generateTeamStandings(season) {
         template = await getTemplate('standings_team.html');
         template = template.replace("ajaxPos", i + 1);
         template = template.replace("ajaxLogo", "<img src='img/"+teamStandingsEntries[i].logo+"' class='img-fluid' style='max-height: 1cm; max-width:2cm; object-fit: cover;'>");
-        template = template.replace("ajaxTeam", "<a href='index.html?page=team&id=" + teamStandingsEntries[i].id + "' target='_self'>" + teamStandingsEntries[i].name + "</a>");
+        template = template.replace("ajaxTeam", "<a href='index.html?page=team&id=" + teamStandingsEntries[i].id + "' target='_self'>" + teamStandingsEntries[i].teamname + "</a>");
         template = template.replace("ajaxPunkte", teamStandingsEntries[i].gesamtpunkte);
         $('#teamStandings').append(template);
     }

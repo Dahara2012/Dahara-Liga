@@ -237,7 +237,7 @@ function getRace($objektid){
 
 function getSoloStandings($objektid){
     $connection = init_connection();
-    $statement = $connection->prepare("SELECT user.id, user.name AS 'username', team.name AS 'teamname', SUM(points) as 'gesamtpunkte' FROM result JOIN user ON result.user = user.id JOIN team ON user.team = team.id JOIN points on result.position = points.position JOIN race ON result.race = race.id WHERE race.season = ? GROUP BY result.user ORDER BY gesamtpunkte DESC");
+    $statement = $connection->prepare("SELECT a.username, a.user as 'id', team.name AS 'teamname', a.gesamtpunkte, team.logo FROM ( SELECT result.user, `user`.name AS 'username', SUM(points.points) AS 'gesamtpunkte', race.season FROM `result` JOIN `user` ON `result`.`user` = `user`.`id` JOIN points ON `result`.`position` = `points`.`position` JOIN race ON result.race = race.id WHERE race.season = ? GROUP BY result.user ) a JOIN teammember ON a.user = teammember.userid JOIN team ON teammember.teamid = team.id AND a.season = team.season ORDER BY gesamtpunkte DESC");
     $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
@@ -454,6 +454,7 @@ function init_connection(){
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
+        PDO::MYSQL_ATTR_INIT_COMMAND => 'SET sql_mode=""'
     ];
     try {
         $pdo = new PDO($dsn, $user, $pass, $options);
