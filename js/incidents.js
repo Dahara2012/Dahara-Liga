@@ -42,20 +42,20 @@ async function generateIncidents(id) {
     penaltyTeamEntries = await getTeamIncidents(id);
     for (let i = 0; i < penaltyEntries.length; i++) {
         template = await getTemplate('incidents.html');
-        template = template.replace("ajaxFahrer", penaltyEntries[i].fahrername);
-        template = template.replace("ajaxTeam", penaltyEntries[i].teamname);
-        template = template.replace("ajaxBeschreibung", penaltyEntries[i].description);
+        template = template.replace("ajaxName", "<span>"+penaltyEntries[i].fahrername+"</span></br><span class='text-muted'>"+penaltyEntries[i].teamname+"</span>");
+        template = template.replace("ajaxBeschreibung", "<span>"+penaltyEntries[i].description+"</span></br><span class='text-muted'>"+penaltyEntries[i].strafe+"</span>");
         template = template.replace("ajaxWo", penaltyEntries[i].wo);
-        template = template.replace("ajaxStrafpunkte", penaltyEntries[i].strafe);
+        template = template.replace("ajaxStrafpunkte", penaltyEntries[i].pp);
+        template = template.replace("ajaxBis", penaltyEntries[i].verfall);
         $('#incidentTable').append(template);
     }
     for (let i = 0; i < penaltyTeamEntries.length; i++) {
         template = await getTemplate('incidents.html');
-        template = template.replace("ajaxFahrer", '-');
-        template = template.replace("ajaxTeam", penaltyTeamEntries[i].teamname);
-        template = template.replace("ajaxBeschreibung", penaltyTeamEntries[i].description);
+        template = template.replace("ajaxName", penaltyTeamEntries[i].teamname);
+        template = template.replace("ajaxBeschreibung", "<span>"+penaltyTeamEntries[i].description+"</span></br><span class='text-muted'>"+penaltyTeamEntries[i].strafe+"</span>");
         template = template.replace("ajaxWo", penaltyTeamEntries[i].wo);
-        template = template.replace("ajaxStrafpunkte", penaltyTeamEntries[i].strafe);
+        template = template.replace("ajaxStrafpunkte", penaltyTeamEntries[i].pp);
+        template = template.replace("ajaxBis", penaltyTeamEntries[i].verfall);
         $('#incidentTable').append(template);
     }
 }

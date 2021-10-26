@@ -266,7 +266,7 @@ function getIncidents($objektid){
     if ($objektid == 'list'){
         $statement = $connection->query("SELECT * FROM penalty");
     }else{
-        $statement = $connection->prepare("SELECT `user`.name as 'fahrername', team.name as 'teamname', penalty.pp as 'strafe', wo, `description` FROM `penalty` join user on penalty.`user` = `user`.`id` join team on `user`.team = team.id WHERE `race` = ?");
+        $statement = $connection->prepare("SELECT `user`.name as 'fahrername', team.name as 'teamname', penalty.description, penalty.strafe, penalty.wo, penalty.pp, penalty.verfall FROM `penalty` JOIN `user` ON penalty.user = `user`.id JOIN race ON penalty.race = race.id JOIN teammember ON penalty.user = teammember.userid JOIN team ON teammember.teamid = team.id AND race.season = team.season where penalty.race = ?");
         $statement->execute([$objektid]);
     }
     $rows = array();
@@ -283,7 +283,8 @@ function getTeamIncidents($objektid){
     if ($objektid == 'list'){
         $statement = $connection->query("SELECT * FROM teampenalty");
     }else{
-        $statement = $connection->prepare("SELECT name AS 'teamname', pp as 'strafe', wo, description FROM `teampenalty` join `team` on `teampenalty`.`team` = `team`.`id` WHERE `race` = ?");
+        $statement = $connection->prepare("SELECT name AS 'teamname', pp, wo, strafe, `description`, verfall FROM `teampenalty` join `team` on `teampenalty`.`team` = `team`.`id` WHERE `race` = ?
+        ");
         $statement->execute([$objektid]);
     }
     $rows = array();
