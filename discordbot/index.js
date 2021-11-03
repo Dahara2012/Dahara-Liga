@@ -88,11 +88,10 @@ async function pruneKickedUsers() {
   try {
     var connection = await connectDatabase();
     let lastChecked = await selectLastChecked(connection);
-    let guild = client.guilds.resolve(configServer.guild);
     let findUser = await guild.members.cache.get(lastChecked);
     if (typeof findUser === 'undefined') {
       let deleteKickedUser = await deleteLastChecked(connection, lastChecked);
-    }else{
+    } else {
       let updateUser = await querySavePresence(connection, lastChecked);
     }
     connection.end();
@@ -147,12 +146,57 @@ function querySavePresence(connection, discordid) {
   });
 }
 
+function queryCheckLicense(connection, discordid) {
+  return new Promise((resolve, reject) => {
+    connection.query({
+      sql: 'SELECT * FROM `user` WHERE `discord` = ?',
+      values: [discordid]
+    }, function (error, results, fields) {
+      if (error != null) {
+        reject(error);
+      }
+      resolve(results[0]);
+    });
+  });
+}
+
+async function dbCheckLicense(discordid) {
+  return new Promise(async (resolve, reject) => {
+    var connection = await connectDatabase();
+    let doSQL = await queryCheckLicense(connection, discordid);
+    connection.end();
+    if (typeof doSQL !== 'undefined') {
+      resolve(true);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+async function checkLizenzRollen() {
+  const guild = client.guilds.resolve(configServer.guild);
+  const lizenzrolle = guild.roles.resolve('905399125619654706');
+  for (const member of guild.members.cache) {
+    let licenseCheck = await dbCheckLicense(member[1].id);
+    console.log("L:"+ licenseCheck+ " R:"+ member[1].roles.cache.has('905399125619654706') + " -"+ member[1].displayName);
+    if (member[1].roles.cache.has('905399125619654706') === true && licenseCheck === false) {
+      member[1].roles.remove(lizenzrolle);
+    }
+    if (member[1].roles.cache.has('905399125619654706') === false && licenseCheck === true) {
+      member[1].roles.add(lizenzrolle);
+    }
+  }
+}
+
 //Events
-client.on('ready', () => {
+client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
+  const guild = client.guilds.resolve(configServer.guild);
+  guild.members.fetch().then(console.log).catch(console.error);
+  checkLizenzRollen();
 });
 
-client.on('presenceUpdate', (oldPresence, newPresence) => {
+/* client.on('presenceUpdate', (oldPresence, newPresence) => {
   let jetzt = new Date();
   if ((jetzt - cooldown) < 60000){
     dbSavePresence(newPresence.userID)
@@ -162,4 +206,4 @@ client.on('presenceUpdate', (oldPresence, newPresence) => {
 
     pruneKickedUsers();
   }
-});
+}); */
