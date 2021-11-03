@@ -94,7 +94,7 @@ function getCurrentSeason() {
 
 async function determineSeason() {
     let params = new URLSearchParams(document.location.search.substring(1));
-    const season = params.get("season");
+    const season = params.get("s");
     if (!isNaN(season) && season != null) {
         return season;
     }else{
