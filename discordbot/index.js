@@ -194,6 +194,7 @@ client.on('ready', async () => {
   const guild = client.guilds.resolve(configServer.guild);
   guild.members.fetch().then(console.log).catch(console.error);
   checkLizenzRollen();
+  
 });
 
 /* client.on('presenceUpdate', (oldPresence, newPresence) => {
