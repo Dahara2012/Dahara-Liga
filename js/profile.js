@@ -107,10 +107,14 @@ async function generateProfile(id) {
     template = template.replace("ajaxPoints", resultEntries3[0].punkte);
     template = template.replace("ajaxPPoints", resultEntries4[0].aktuelleStrafpunkte);
     await $('#profile').append(template);
+    let sumpp = 0;
     for (let i = 0; i < resultEntries5.length; i++) {
         let listeneintrag = '<a href="index.html?page=incidents&id='+resultEntries5[i].race+'" class="list-group-item"><span class="badge bg-dark rounded-pill">bis '+resultEntries5[i].verfall+'</span> '+resultEntries5[i].pp+' Strafpunkt(e)</a>';
+        sumpp = sumpp + resultEntries5[i].pp;
         $('#strafpunkteliste').append(listeneintrag);
     }
+    let ppsummeneintrag = '<p class="list-group-item d-flex justify-content-between align-items-center">Aktuelle Anzahl Strafpunkte: <span class="badge bg-dark rounded-pill">'+sumpp+'</span></p>';
+    $('#strafpunkteliste').append(ppsummeneintrag);
     for (let i = 0; i < resultEntries6.length; i++) {
         let listeneintrag = '<a href="index.html?page=result&id='+resultEntries6[i].race+'" class="list-group-item"><span class="badge bg-dark rounded-pill">Platz '+resultEntries6[i].position+'</span> '+resultEntries6[i].circuit+'</a>';
         $('#rennenliste').append(listeneintrag);

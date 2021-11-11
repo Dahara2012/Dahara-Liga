@@ -88,17 +88,15 @@ function getTeamIncidents(id) {
 async function generateBasicTeamInfo(id) {
     let teamEntries = await getTeam(id);
     $('#team-name').text(teamEntries[0].name);
-    $('#team-website').html('<a target="_blanc" href="'+teamEntries[0].website+'">'+teamEntries[0].website+'</a>');
-    $('#team-logo').html('<img src="img/'+teamEntries[0].logo+'" style="max-height: 5cm; max-width: 100%; height: auto;display: block; margin-left: auto; margin-right: auto;">');
+    $('#team-website').html('<a target="_blanc" href="' + teamEntries[0].website + '">' + teamEntries[0].website + '</a>');
+    $('#team-logo').html('<img src="img/' + teamEntries[0].logo + '" style="max-height: 5cm; max-width: 100%; height: auto;display: block; margin-left: auto; margin-right: auto;">');
 }
 
 async function generateKader(id) {
     let kaderEntries = await getKader(id);
     for (let i = 0; i < kaderEntries.length; i++) {
-        generateFahrerStrafpunkte(kaderEntries[i].name, kaderEntries[i].id);
         template = await getTemplate('team_kader.html');
-        template = template.replace("ajaxName", kaderEntries[i].name);
-        template = template.replace("ajaxAvatar", "<img src='"+kaderEntries[i].avatarurl+"' class='img-fluid' style='max-height: 1cm;'>");
+        template = template.replace("ajaxName", "<a href='index.html?page=profile&id=" + kaderEntries[i].userid + "'>" + kaderEntries[i].username + "</a>");
         $('#team-kader').append(template);
     }
 }
@@ -107,30 +105,35 @@ async function generateTeamResults(id) {
     let TeamResultsEntries = await getTeamResults(id);
     for (let i = 0; i < TeamResultsEntries.length; i++) {
         template = await getTemplate('team_results.html');
-        template = template.replace("ajaxCar", "<img src='img/brands/"+TeamResultsEntries[i].car+".png' class='img-fluid' style='max-height: 1cm;'>");
-        template = template.replace("ajaxPlatz", TeamResultsEntries[i].position+". Platz");
-        template = template.replace("ajaxName", TeamResultsEntries[i].name+"</br>");
-        template = template.replace("ajaxPoints", TeamResultsEntries[i].points+" Punkte in Rennen "+TeamResultsEntries[i].race);
+        template = template.replace("ajaxID", TeamResultsEntries[i].id);
+        template = template.replace("ajaxCircuit", TeamResultsEntries[i].circuit);
+        template = template.replace("ajaxPunkte", TeamResultsEntries[i].punkte);
         $('#team-results').append(template);
     }
 }
 
-async function generateFahrerStrafpunkte(name, id) {
-    let ppEntry = await getDriverPenalties(id);
-    let pp = ppEntry[0].strafpunkte;
-    if (pp == null || parseInt(pp) < 0){pp = 0;}
-    template = await getTemplate('team_penalties.html');
-    template = template.replace("ajaxFahrer", name);
-    template = template.replace("ajaxStrafpunkte", pp+" Strafpunkte");
-    $('#team-penalties').append(template);
-}
-
 async function generateTeamStrafpunkte(id) {
     let penaltyEntries = await getTeamIncidents(id);
+    let ppsum = 0;
     for (let i = 0; i < penaltyEntries.length; i++) {
         template = await getTemplate('team_penalties.html');
-        template = template.replace("ajaxFahrer", penaltyEntries[i].teamname);
-        template = template.replace("ajaxStrafpunkte", penaltyEntries[i].strafe+" Strafpunkte "+penaltyEntries[i].description);
+        template = template.replace("ajaxID", penaltyEntries[i].race);
+        template = template.replace("ajaxVerfall", penaltyEntries[i].verfall);
+        template = template.replace("ajaxPP", penaltyEntries[i].pp);
+        ppsum = ppsum + penaltyEntries[i].pp;
         $('#team-penalties').append(template);
     }
+
+    let ppEntry = await getDriverPenalties(id);
+    for (let k = 0; k < ppEntry.length;  k++) {
+        template2 = await getTemplate('team_penalties.html');
+        template2 = template2.replace("ajaxID", ppEntry[k].race);
+        template2 = template2.replace("ajaxVerfall", ppEntry[k].verfall);
+        template2 = template2.replace("ajaxPP", ppEntry[k].pp);
+        ppsum = ppsum + ppEntry[k].pp;
+        $('#team-penalties').append(template2);
+    }
+
+    let ppsummeneintrag = '<p class="list-group-item d-flex justify-content-between align-items-center">Aktuelle Anzahl Strafpunkte: <span class="badge bg-dark rounded-pill">' + ppsum + '</span></p>';
+    $('#team-penalties').append(ppsummeneintrag);
 }

@@ -164,7 +164,7 @@ function getPodiums($objektid){
 
 function getUserteam($objektid){
     $connection = init_connection();
-    $statement = $connection->prepare('SELECT user.name as username, team.name as teamname, logo FROM `user` join team on user.team = team.id WHERE user.id = ?');
+    $statement = $connection->prepare('SELECT user.name as username, team.name as teamname, logo FROM `user` join teammember on user.id = teammember.userid join team on teammember.teamid = team.id WHERE user.id = ?');
     $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
@@ -177,12 +177,8 @@ function getUserteam($objektid){
 
 function getKader($objektid){
     $connection = init_connection();
-    if ($objektid == 'list'){
-        $statement = $connection->query("SELECT * FROM `user` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid`");
-    }else{
-        $statement = $connection->prepare('SELECT * FROM `user` LEFT JOIN `discord` on `user`.`discord` = `discord`.`discordid` WHERE `team` = ?');
-        $statement->execute([$objektid]);
-    }
+    $statement = $connection->prepare("SELECT `user`.id as 'userid', `user`.name as 'username' FROM `team` JOIN teammember on team.id = teammember.teamid join `user` on teammember.userid = `user`.id WHERE team.id = ?");
+    $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -211,7 +207,7 @@ function getPenalty($objektid){
 
 function getDriverPenalties($objektid){
     $connection = init_connection();
-    $statement = $connection->prepare("SELECT (SELECT SUM(`pp`) as 'gesamtstrafpunkte' FROM `penalty` WHERE `user` = ?) - (SELECT COUNT(DISTINCT `race`) as 'countRennen' FROM `result`) AS 'strafpunkte'");
+    $statement = $connection->prepare("SELECT * FROM teammember join penalty on teammember.userid = penalty.user where teammember.teamid = ? and verfall > CURRENT_DATE");
     $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
@@ -298,12 +294,8 @@ function getTeamIncidents($objektid){
 
 function getTeamIncidentsTeampage($objektid){
     $connection = init_connection();
-    if ($objektid == 'list'){
-        $statement = $connection->query("SELECT * FROM teampenalty");
-    }else{
-        $statement = $connection->prepare("SELECT name AS 'teamname', pp as 'strafe', wo, description FROM `teampenalty` LEFT join `team` on `teampenalty`.`team` = `team`.`id` WHERE `team`.`id` = ?");
-        $statement->execute([$objektid]);
-    }
+    $statement = $connection->prepare("SELECT * FROM teampenalty where teampenalty.team = ? and verfall > CURRENT_DATE");
+    $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
     {
@@ -332,7 +324,7 @@ function getResult($objektid){
 
 function getTeamResults($objektid){
     $connection = init_connection();
-    $statement = $connection->prepare('SELECT race, user, result.position, qualipos, quali, gap, fastest, cars.car, name, discord, iracingid, team, points FROM `result` left join cars on result.car = cars.id join user on `result`.`user` = `user`.`id` LEFT JOIN points on result.position = points.position WHERE team = ?');
+    $statement = $connection->prepare("SELECT sum(points.points) as 'punkte', race.circuit, race.id FROM `team` join teammember on teammember.teamid = team.id join result on result.user = teammember.userid join race on result.race = race.id join points on points.position = result.position WHERE team.id = ? group by race.circuit ORDER BY race.start DESC LIMIT 4");
     $statement->execute([$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
