@@ -91,11 +91,26 @@ switch ($objekt) {
     case 'lastRacesListe':
         getlastRacesListe($objektid);
         break;
+    case 'getTeamKollegen':
+        getTeamKollegen($objektid);
+        break;
     case 'settings':
         getSettings();
         break;  
 }
 
+function getTeamKollegen($objektid){
+    $connection = init_connection();
+    $statement = $connection->prepare("SELECT teammember.userid as 'userid', `user`.name as 'username' FROM `teammember` join user on teammember.userid = `user`.id WHERE teamid IN (SELECT teamid FROM `teammember` where teammember.userid = ?)");
+    $statement->execute([$objektid]);
+    $rows = array();
+    while ($row = $statement->fetch())
+    {
+        $rows[] = $row;
+    }
+    header('Content-Type: application/json');
+    print json_encode($rows, JSON_PRETTY_PRINT);
+}
 
 function getlastRacesListe($objektid){
     $connection = init_connection();
