@@ -263,8 +263,8 @@ async function checkTeamRollen() {
       }
     }
   }
-
 }
+
 ////Events
 
 //Bot Ready Event
