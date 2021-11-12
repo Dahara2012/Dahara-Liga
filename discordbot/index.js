@@ -271,8 +271,9 @@ async function checkTeamRollen() {
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
   guild = client.guilds.resolve(configServer.guild);
+  console.log(await guild.members.fetch());
   checkLizenzRollen();
-  checkSeasonRollen();
-  checkTeamRollen();
+  //checkSeasonRollen();
+  //checkTeamRollen();
 
 });
