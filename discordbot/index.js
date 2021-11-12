@@ -1,17 +1,17 @@
-//Includes
+////Includes
 const configDatabase = require('./config/db.json');
 const configToken = require('./config/token.json');
 const configServer = require('./config/server.json');
 const Discord = require('discord.js');
 const client = new Discord.Client();
+let guild;
 var mysql = require('mysql');
-var cooldown = new Date();
 
-//Main
+////Main
 client.login(configToken.value);
 
 
-//Funktionen
+////Funktionen
 function getTime() {
   //Gibt aktuelle Zeit in Form hh:mm:ss für die Console zurück
   let now = new Date();
@@ -40,6 +40,7 @@ function connectDatabase() {
       password: configDatabase.password,
       database: configDatabase.database,
       port: configDatabase.port,
+      supportBigNumbers: true,
       charset: 'utf8mb4_unicode_ci'
     });
     connection.connect(function (err) {
@@ -53,100 +54,8 @@ function connectDatabase() {
   });
 }
 
-function selectLastChecked(connection) {
-  return new Promise((resolve, reject) => {
-    connection.query({
-      sql: 'SELECT CAST(`discordid` AS CHAR) `discordid` FROM `discord` ORDER BY `discord`.`lastUpdate` ASC LIMIT 1'
-    }, function (error, results, fields) {
-      if (error != null) {
-        reject(error);
-      } else {
-        resolve(results[0].discordid);
-      }
-    });
-  });
-}
-
-function deleteLastChecked(connection, lastChecked) {
-  return new Promise((resolve, reject) => {
-    let time = getTime();
-    connection.query({
-      sql: 'DELETE FROM `discord` WHERE `discordid` = ?',
-      values: [lastChecked]
-    }, function (error, results, fields) {
-      if (error != null) {
-        reject(error);
-      } else {
-        console.log(time + " Deleted from Discord " + lastChecked);
-        resolve();
-      }
-    });
-  });
-}
-
-async function pruneKickedUsers() {
-  try {
-    var connection = await connectDatabase();
-    let lastChecked = await selectLastChecked(connection);
-    let findUser = await guild.members.cache.get(lastChecked);
-    if (typeof findUser === 'undefined') {
-      let deleteKickedUser = await deleteLastChecked(connection, lastChecked);
-    } else {
-      let updateUser = await querySavePresence(connection, lastChecked);
-    }
-    connection.end();
-  } catch (error) {
-    console.log(error);
-    if (typeof connection !== 'undefined') {
-      connection.end();
-    }
-  }
-}
-
-async function dbSavePresence(discordid) {
-  try {
-    var connection = await connectDatabase();
-    let doSQL = await querySavePresence(connection, discordid);
-    connection.end();
-  } catch (error) {
-    if (typeof connection !== 'undefined') {
-      connection.end();
-    }
-    console.log(error);
-    return false
-  }
-}
-
-function querySavePresence(connection, discordid) {
-  //Aktualisiert oder legt UserData eines Nutzers in der DB neu an
-  return new Promise((resolve, reject) => {
-    let avatar = client.guilds.resolve(configServer.guild).members.cache.get(discordid).user.avatarURL({ format: "png", dynamic: true, size: 4096 });
-    if (avatar == null) {
-      avatar = 'https://liga.dahara.de/img/platzhalter.png';
-    }
-    let userid = discordid;
-    let time = getTime();
-    let nickname = 'Name';
-    if (client.guilds.resolve(configServer.guild).members.cache.get(discordid).user.username != null) {
-      nickname = client.guilds.resolve(configServer.guild).members.cache.get(discordid).user.username;
-    }
-    if (client.guilds.resolve(configServer.guild).members.cache.get(discordid).nickname != null) {
-      nickname = client.guilds.resolve(configServer.guild).members.cache.get(discordid).nickname;
-    }
-    connection.query({
-      sql: 'INSERT INTO `discord`(`discordid`, `avatarurl`, `nickname`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `avatarurl`=?, `nickname`=?, `LastUpdate`= CURRENT_TIMESTAMP',
-      values: [userid, avatar, nickname, avatar, nickname]
-    }, function (error, results, fields) {
-      if (error != null) {
-        reject(error);
-      }
-      console.log(time + " Discord data updated for " + nickname);
-      resolve();
-    });
-  });
-}
-
 function queryCheckLicense(connection, discordid) {
+  //SQL Query um zu überprüfen ob ein Discorduser eine Lizenz hat
   return new Promise((resolve, reject) => {
     connection.query({
       sql: 'SELECT * FROM `user` WHERE `discord` = ?',
@@ -161,6 +70,7 @@ function queryCheckLicense(connection, discordid) {
 }
 
 async function dbCheckLicense(discordid) {
+  //DB Anfrage um zu überprüfen ob ein Discorduser eine Lizenz hat
   return new Promise(async (resolve, reject) => {
     var connection = await connectDatabase();
     let doSQL = await queryCheckLicense(connection, discordid);
@@ -174,11 +84,16 @@ async function dbCheckLicense(discordid) {
 }
 
 async function checkLizenzRollen() {
-  const guild = client.guilds.resolve(configServer.guild);
+  //"Lizenz" Rolle auf Discord
   const lizenzrolle = guild.roles.resolve('905399125619654706');
+
+  //Schleife die durch alle Discorduser iteriert
   for (const member of guild.members.cache) {
+    //überprüfen ob Discord user eine Lizenz in DB hat
     let licenseCheck = await dbCheckLicense(member[1].id);
-    console.log("L:"+ licenseCheck+ " R:"+ member[1].roles.cache.has('905399125619654706') + " -"+ member[1].displayName);
+    console.log("L:" + licenseCheck + " R:" + member[1].roles.cache.has('905399125619654706') + " -" + member[1].displayName);
+
+    //Vergabe oder entzug basierend auf Lizenzcheck & ob User die Rolle bereits hat
     if (member[1].roles.cache.has('905399125619654706') === true && licenseCheck === false) {
       member[1].roles.remove(lizenzrolle);
     }
@@ -188,23 +103,176 @@ async function checkLizenzRollen() {
   }
 }
 
-//Events
+function queryCheckSeasonRole(connection, discordid) {
+  //SQL Query um zu überprüfen ob ein Discorduser eine Lizenz hat
+  return new Promise((resolve, reject) => {
+    connection.query({
+      sql: 'SELECT * FROM `user` join teammember on teammember.userid = `user`.`id` join team on teammember.teamid = team.id where `user`.discord = ? and team.season = (select current_season from settings where pk = 1)',
+      values: [discordid]
+    }, function (error, results, fields) {
+      if (error != null) {
+        reject(error);
+      }
+      resolve(results[0]);
+    });
+  });
+}
+
+async function dbCheckSeasonRole(discordid) {
+  //DB Anfrage um zu überprüfen ob ein Discorduser die Season rolle bekommen soll
+  return new Promise(async (resolve, reject) => {
+    var connection = await connectDatabase();
+    let doSQL = await queryCheckSeasonRole(connection, discordid);
+    connection.end();
+    if (typeof doSQL !== 'undefined') {
+      resolve(true);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+function queryGetSeasonRole(connection) {
+  //SQL Query um zu überprüfen ob ein Discorduser eine Lizenz hat
+  return new Promise((resolve, reject) => {
+    connection.query({
+      sql: 'SELECT `discordseasonroleid` FROM `settings` WHERE `pk` = 1;',
+      values: []
+    }, function (error, results, fields) {
+      if (error != null) {
+        reject(error);
+      }
+      resolve(results[0].discordseasonroleid);
+    });
+  });
+}
+
+async function dbGetSeasonRole() {
+  //DB Anfrage um die Discordid der Seasonrolle aus der DB zu bekommen
+  return new Promise(async (resolve, reject) => {
+    var connection = await connectDatabase();
+    let doSQL = await queryGetSeasonRole(connection);
+    connection.end();
+    if (typeof doSQL !== 'undefined') {
+      resolve(doSQL);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+async function checkSeasonRollen() {
+  //"Season" Rolle auf Discord
+  let seasonRolleId = await dbGetSeasonRole();
+  const seasonRolle = guild.roles.resolve(seasonRolleId);
+  //Schleife die durch alle Discorduser iteriert
+  for (const member of guild.members.cache) {
+    //überprüfen ob Discord user in einem Season X Team in DB ist
+    let roleCheck = await dbCheckSeasonRole(member[1].id);
+    console.log("L:" + roleCheck + " R:" + member[1].roles.cache.has(seasonRolleId) + " -" + member[1].displayName);
+
+    //Vergabe oder entzug basierend auf roleCheck & ob User die Rolle bereits hat
+    if (member[1].roles.cache.has(seasonRolleId) === true && roleCheck === false) {
+      member[1].roles.remove(seasonRolle);
+    }
+    if (member[1].roles.cache.has(seasonRolleId) === false && roleCheck === true) {
+      member[1].roles.add(seasonRolle);
+    }
+  }
+}
+
+function queryGetTeamRoles(connection) {
+  //SQL Query um zu überprüfen ob ein Discorduser eine Lizenz hat
+  return new Promise((resolve, reject) => {
+    connection.query({
+      sql: 'SELECT id, name, discordroleid FROM `team` WHERE `season` = (select current_season from settings where pk = 1)',
+      values: []
+    }, function (error, results, fields) {
+      if (error != null) {
+        reject(error);
+      }
+      resolve(results);
+    });
+  });
+}
+
+async function dbGetTeamRoles() {
+  //DB Anfrage um die Discordid der Seasonrolle aus der DB zu bekommen
+  return new Promise(async (resolve, reject) => {
+    var connection = await connectDatabase();
+    let doSQL = await queryGetTeamRoles(connection);
+    connection.end();
+    if (typeof doSQL !== 'undefined') {
+      resolve(doSQL);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+function queryCheckTeamRole(connection, discordid, teamid) {
+  //SQL Query um zu überprüfen ob ein Discorduser im angegeben Team ist
+  return new Promise((resolve, reject) => {
+    connection.query({
+      sql: 'SELECT * FROM `user` join teammember on `user`.id = teammember.userid where `user`.discord = ? and teammember.teamid = ?;',
+      values: [discordid, teamid]
+    }, function (error, results, fields) {
+      if (error != null) {
+        reject(error);
+      }
+      resolve(results[0]);
+    });
+  });
+}
+
+async function dbCheckTeamRole(discordid, teamid) {
+  //DB Anfrage um zu überprüfen ob ein Discorduser im Angefragten Team ist
+  return new Promise(async (resolve, reject) => {
+    var connection = await connectDatabase();
+    let doSQL = await queryCheckTeamRole(connection, discordid, teamid);
+    connection.end();
+    if (typeof doSQL !== 'undefined') {
+      resolve(true);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+async function checkTeamRollen() {
+  //"Team" Rollen auf Discord
+  let TeamRoleIds = await dbGetTeamRoles();
+
+  //Schleife für jedes Team-rolle
+  for (let index = 0; index < TeamRoleIds.length; index++) {
+    const rolle = TeamRoleIds[index];
+    const teamRolle = guild.roles.resolve(rolle.discordroleid);
+
+    //Schleife die durch alle Discorduser iteriert
+    for (const member of guild.members.cache) {
+      //überprüfen ob Discord user Team dieser Schleife ist in DB ist
+      let roleCheck = await dbCheckTeamRole(member[1].id, rolle.id);
+      console.log("L:" + roleCheck + " R:" + member[1].roles.cache.has(rolle.discordroleid) + " -" + member[1].displayName);
+
+      //Vergabe oder entzug basierend auf roleCheck & ob User die Rolle bereits hat
+      if (member[1].roles.cache.has(rolle.discordroleid) === true && roleCheck === false) {
+        member[1].roles.remove(teamRolle);
+      }
+      if (member[1].roles.cache.has(rolle.discordroleid) === false && roleCheck === true) {
+        member[1].roles.add(teamRolle);
+      }
+    }
+  }
+
+}
+////Events
+
+//Bot Ready Event
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
-  const guild = client.guilds.resolve(configServer.guild);
-  guild.members.fetch().then(console.log).catch(console.error);
+  guild = client.guilds.resolve(configServer.guild);
   checkLizenzRollen();
-  
+  checkSeasonRollen();
+  checkTeamRollen();
+
 });
-
-/* client.on('presenceUpdate', (oldPresence, newPresence) => {
-  let jetzt = new Date();
-  if ((jetzt - cooldown) < 60000){
-    dbSavePresence(newPresence.userID)
-    console.log("wait for cooldown");
-  }else{
-    cooldown = jetzt;
-
-    pruneKickedUsers();
-  }
-}); */

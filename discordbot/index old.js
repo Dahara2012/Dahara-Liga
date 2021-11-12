@@ -114,7 +114,7 @@ async function dbSavePresence(discordid) {
       connection.end();
     }
     console.log(error);
-    return false
+    return false;
   }
 }
 
@@ -155,7 +155,7 @@ client.on('ready', () => {
 client.on('presenceUpdate', (oldPresence, newPresence) => {
   let jetzt = new Date();
   if ((jetzt - cooldown) < 60000){
-    dbSavePresence(newPresence.userID)
+    dbSavePresence(newPresence.userID);
     console.log("wait for cooldown");
   }else{
     cooldown = jetzt;
