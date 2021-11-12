@@ -273,7 +273,7 @@ client.on('ready', async () => {
   guild = client.guilds.resolve(configServer.guild);
   console.log(await guild.members.fetch());
   checkLizenzRollen();
-  //checkSeasonRollen();
-  //checkTeamRollen();
+  checkSeasonRollen();
+  checkTeamRollen();
 
 });
