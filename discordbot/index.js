@@ -239,6 +239,53 @@ async function dbCheckTeamRole(discordid, teamid) {
   });
 }
 
+function queryCheckTeamleiterRole(connection, discordid) {
+  //SQL Query um zu überprüfen ob ein Discorduser im angegeben Team ist
+  return new Promise((resolve, reject) => {
+    connection.query({
+      sql: 'SELECT * FROM `team` WHERE `teamleiter` = ?',
+      values: [discordid]
+    }, function (error, results, fields) {
+      if (error != null) {
+        reject(error);
+      }
+      resolve(results[0]);
+    });
+  });
+}
+
+async function dbCheckTeamleiterRole(discordid) {
+  //DB Anfrage um zu überprüfen ob ein Discorduser im Angefragten Team ist
+  return new Promise(async (resolve, reject) => {
+    var connection = await connectDatabase();
+    let doSQL = await queryCheckTeamleiterRole(connection, discordid);
+    connection.end();
+    if (typeof doSQL !== 'undefined') {
+      resolve(true);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+async function checkTeamleiterRollen() {
+  //Schleife die durch alle Discorduser iteriert
+  for (const member of guild.members.cache) {
+    //überprüfen ob Discord user Team dieser Schleife ist in DB ist
+    let roleCheck = await dbCheckTeamleiterRole(member[1].id);
+    console.log("TL L:" + roleCheck + " R:" + member[1].roles.cache.has('906900095105114112') + " - " + member[1].displayName);
+
+    //Vergabe oder entzug basierend auf roleCheck & ob User die Rolle bereits hat
+    const teamleiterrolle = guild.roles.resolve('906900095105114112');
+    if (member[1].roles.cache.has('906900095105114112') === true && roleCheck === false) {
+      member[1].roles.remove(teamleiterrolle);
+    }
+    if (member[1].roles.cache.has('906900095105114112') === false && roleCheck === true) {
+      member[1].roles.add(teamleiterrolle);
+    }
+  }
+}
+
 async function checkTeamRollen() {
   //"Team" Rollen auf Discord
   let TeamRoleIds = await dbGetTeamRoles();
@@ -252,7 +299,7 @@ async function checkTeamRollen() {
     for (const member of guild.members.cache) {
       //überprüfen ob Discord user Team dieser Schleife ist in DB ist
       let roleCheck = await dbCheckTeamRole(member[1].id, rolle.id);
-      console.log("L:" + roleCheck + " R:" + member[1].roles.cache.has(rolle.discordroleid) + " -" + member[1].displayName);
+      console.log("T L:" + roleCheck + " R:" + member[1].roles.cache.has(rolle.discordroleid) + " - " + member[1].displayName);
 
       //Vergabe oder entzug basierend auf roleCheck & ob User die Rolle bereits hat
       if (member[1].roles.cache.has(rolle.discordroleid) === true && roleCheck === false) {
@@ -275,5 +322,5 @@ client.on('ready', async () => {
   checkLizenzRollen();
   checkSeasonRollen();
   checkTeamRollen();
-
+  checkTeamleiterRollen();
 });
