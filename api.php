@@ -262,7 +262,6 @@ function getSoloStandings($objektid){
 function getTeamStandings($objektid){
     $connection = init_connection();
     $statement = $connection->prepare("SELECT id, NAME, logo, SUM(points) AS 'teampunkte' FROM ( SELECT team.id, team.name, team.logo, points.points FROM `result` JOIN points ON result.position = points.position JOIN `race` ON result.race = race.id RIGHT JOIN teammember ON result.user = teammember.userid JOIN team ON teammember.teamid = team.id JOIN `user` ON result.user = `user`.id WHERE race.season = ? AND team.season = ? ) a GROUP BY a.id ORDER BY `teampunkte` DESC");
-    echo $objektid;
     $statement->execute([$objektid,$objektid]);
     $rows = array();
     while ($row = $statement->fetch())
